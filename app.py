@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, jsonify
 import sqlite3
 from datetime import datetime
 
@@ -39,32 +39,39 @@ def index():
 
 @app.route("/save_invoice", methods=["POST"])
 def save_invoice():
-    items = request.json.get("items", [])
-    total = request.json.get("total", 0)
+    try:
+        data = request.get_json()
+        items = data.get("items", [])
+        total = data.get("total", 0)
 
-    conn = sqlite3.connect(DB_NAME)
-    cur = conn.cursor()
+        if not items:
+            return jsonify({"success": False, "message": "No items to save"}), 400
 
-    created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    cur.execute("INSERT INTO invoices (created_at, total) VALUES (?, ?)", (created_at, total))
-    invoice_id = cur.lastrowid
+        conn = sqlite3.connect(DB_NAME)
+        cur = conn.cursor()
 
-    for item in items:
-        cur.execute("""
-            INSERT INTO invoice_items (invoice_id, product_name, quantity, rate, line_total)
-            VALUES (?, ?, ?, ?, ?)
-        """, (
-            invoice_id,
-            item.get("product_name"),
-            int(item.get("quantity", 0)),
-            float(item.get("rate", 0)),
-            float(item.get("line_total", 0)),
-        ))
+        created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        cur.execute("INSERT INTO invoices (created_at, total) VALUES (?, ?)", (created_at, total))
+        invoice_id = cur.lastrowid
 
-    conn.commit()
-    conn.close()
+        for item in items:
+            cur.execute("""
+                INSERT INTO invoice_items (invoice_id, product_name, quantity, rate, line_total)
+                VALUES (?, ?, ?, ?, ?)
+            """, (
+                invoice_id,
+                item.get("product_name"),
+                int(item.get("quantity", 0)),
+                float(item.get("rate", 0)),
+                float(item.get("line_total", 0)),
+            ))
 
-    return {"success": True, "invoice_id": invoice_id}
+        conn.commit()
+        conn.close()
+
+        return jsonify({"success": True, "invoice_id": invoice_id})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
 
 
 @app.route("/history")

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Billing App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="container">
+    <header class="top-bar">
+        <h1>🢳 Smart Billing</h1>
+        <a href="{{ url_for('history') }}" class="btn secondary">Invoice History</a>
+    </header>
+
+    <section class="card">
+        <h2>Create Invoice</h2>
+        <div class="inputs-row">
+            <input id="productName" type="text" placeholder="Product name">
+            <input id="quantity" type="number" min="1" placeholder="Qty">
+            <input id="rate" type="number" min="0" step="0.01" placeholder="Rate">
+            <button id="addItemBtn" class="btn primary">Add Item</button>
+        </div>
+
+        <table class="items-table">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>Product</th>
+                <th>Qty</th>
+                <th>Rate</th>
+                <th>Line Total</th>
+                <th>Action</th>
+            </tr>
+            </thead>
+            <tbody id="itemsBody">
+            </tbody>
+        </table>
+
+        <div class="total-section">
+            <div class="total-row">
+                <span>Grand Total:</span>
+                <span id="grandTotal" class="total-amount">0.00</span>
+            </div>
+        </div>
+
+        <div class="actions-row">
+            <button id="clearBtn" class="btn secondary">Clear All</button>
+            <button id="saveInvoiceBtn" class="btn success">Save Invoice</button>
+        </div>
+    </section>
+</div>
+
+<script>
+    const items = [];
+    const itemsBody = document.getElementById("itemsBody");
+    const grandTotalEl = document.getElementById("grandTotal");
+
+    function renderTable() {
+        itemsBody.innerHTML = "";
+        let grandTotal = 0;
+        items.forEach((item, index) => {
+            const tr = document.createElement("tr");
+            grandTotal += item.line_total;
+
+            tr.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${item.product_name}</td>
+                <td>${item.quantity}</td>
+                <td>₹${item.rate.toFixed(2)}</td>
+                <td>₹${item.line_total.toFixed(2)}</td>
+                <td><button class="btn danger btn-sm" onclick="removeItem(${index})">Delete</button></td>
+            `;
+            itemsBody.appendChild(tr);
+        });
+        grandTotalEl.textContent = grandTotal.toFixed(2);
+    }
+
+    function addItem() {
+        const name = document.getElementById("productName").value.trim();
+        const qty = parseInt(document.getElementById("quantity").value);
+        const rate = parseFloat(document.getElementById("rate").value);
+
+        if (!name || !qty || !rate) {
+            alert("Please fill in all fields: Product name, Quantity, and Rate.");
+            return;
+        }
+
+        const lineTotal = qty * rate;
+        items.push({
+            product_name: name,
+            quantity: qty,
+            rate: rate,
+            line_total: lineTotal
+        });
+
+        document.getElementById("productName").value = "";
+        document.getElementById("quantity").value = "";
+        document.getElementById("rate").value = "";
+        document.getElementById("productName").focus();
+
+        renderTable();
+    }
+
+    function removeItem(index) {
+        if (confirm("Delete this item?")) {
+            items.splice(index, 1);
+            renderTable();
+        }
+    }
+
+    async function saveInvoice() {
+        if (items.length === 0) {
+            alert("No items to save. Add items first.");
+            return;
+        }
+        const total = parseFloat(grandTotalEl.textContent);
+
+        try {
+            const response = await fetch("/save_invoice", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({items: items, total: total})
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                alert("Invoice #" + data.invoice_id + " saved successfully!");
+                items.length = 0;
+                renderTable();
+            } else {
+                alert("Error saving invoice.");
+            }
+        } catch (error) {
+            alert("Error: " + error.message);
+        }
+    }
+
+    function clearAll() {
+        if (confirm("Clear all items?")) {
+            items.length = 0;
+            renderTable();
+        }
+    }
+
+    document.getElementById("addItemBtn").addEventListener("click", addItem);
+    document.getElementById("saveInvoiceBtn").addEventListener("click", saveInvoice);
+    document.getElementById("clearBtn").addEventListener("click", clearAll);
+    document.getElementById("productName").addEventListener("keypress", (e) => {
+        if (e.key === "Enter") addItem();
+    });
+</script>
+</body>
+</html>

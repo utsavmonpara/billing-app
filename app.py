@@ -32,6 +32,10 @@ def init_db():
     conn.close()
 
 
+# Initialize database when app starts
+init_db()
+
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -76,36 +80,41 @@ def save_invoice():
 
 @app.route("/history")
 def history():
-    conn = sqlite3.connect(DB_NAME)
-    cur = conn.cursor()
-    cur.execute("SELECT id, created_at, total FROM invoices ORDER BY id DESC")
-    invoices = cur.fetchall()
-    conn.close()
-    return render_template("history.html", invoices=invoices)
+    try:
+        conn = sqlite3.connect(DB_NAME)
+        cur = conn.cursor()
+        cur.execute("SELECT id, created_at, total FROM invoices ORDER BY id DESC")
+        invoices = cur.fetchall()
+        conn.close()
+        return render_template("history.html", invoices=invoices)
+    except Exception as e:
+        return f"Error loading history: {str(e)}", 500
 
 
 @app.route("/invoice/<int:invoice_id>")
 def invoice_detail(invoice_id):
-    conn = sqlite3.connect(DB_NAME)
-    cur = conn.cursor()
+    try:
+        conn = sqlite3.connect(DB_NAME)
+        cur = conn.cursor()
 
-    cur.execute("SELECT id, created_at, total FROM invoices WHERE id = ?", (invoice_id,))
-    invoice = cur.fetchone()
+        cur.execute("SELECT id, created_at, total FROM invoices WHERE id = ?", (invoice_id,))
+        invoice = cur.fetchone()
 
-    cur.execute("""
-        SELECT product_name, quantity, rate, line_total
-        FROM invoice_items
-        WHERE invoice_id = ?
-    """, (invoice_id,))
-    items = cur.fetchall()
+        cur.execute("""
+            SELECT product_name, quantity, rate, line_total
+            FROM invoice_items
+            WHERE invoice_id = ?
+        """, (invoice_id,))
+        items = cur.fetchall()
 
-    conn.close()
-    if not invoice:
-        return "Invoice not found", 404
+        conn.close()
+        if not invoice:
+            return "Invoice not found", 404
 
-    return render_template("invoice_detail.html", invoice=invoice, items=items)
+        return render_template("invoice_detail.html", invoice=invoice, items=items)
+    except Exception as e:
+        return f"Error loading invoice: {str(e)}", 500
 
 
 if __name__ == "__main__":
-    init_db()
     app.run(debug=True)

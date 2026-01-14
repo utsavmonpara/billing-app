@@ -10,23 +10,67 @@
     <div class="container">
         <header class="top-bar">
             <div class="logo-section">
-                <svg class="logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <!-- 3D Isometric Billing Logo -->
+                <svg class="logo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
                     <defs>
-                        <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#3498db;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#2980b9;stop-opacity:1" />
+                        <linearGradient id="blueFace" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#5B9BFF;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#2E5AC2;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="greenFace" x1="0%" y1="100%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#52D87F;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#27B558;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="orangeFace" x1="100%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#FFB754;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#FF9500;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="cardGold" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#FFC700;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="shadow" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#00000015;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#00000030;stop-opacity:1" />
                         </linearGradient>
                     </defs>
-                    <!-- Invoice/Receipt shape -->
-                    <rect x="25" y="15" width="50" height="70" rx="4" fill="url(#logoGradient)" stroke="#2980b9" stroke-width="1.5"/>
-                    <!-- Lines representing text -->
-                    <line x1="35" y1="30" x2="65" y2="30" stroke="white" stroke-width="2" stroke-linecap="round"/>
-                    <line x1="35" y1="40" x2="65" y2="40" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-                    <line x1="35" y1="48" x2="60" y2="48" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-                    <line x1="35" y1="56" x2="60" y2="56" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-                    <!-- Amount highlight -->
-                    <circle cx="50" cy="70" r="8" fill="#f39c12" stroke="white" stroke-width="1.5"/>
-                    <text x="50" y="73" text-anchor="middle" font-size="8" fill="white" font-weight="bold">₹</text>
+                    
+                    <!-- Base/Ground -->
+                    <polygon points="50,160 100,135 150,160 100,185" fill="#f0f0f0" opacity="0.6"/>
+                    
+                    <!-- Laptop Base - Isometric View -->
+                    <!-- Front face (blue) -->
+                    <polygon points="50,120 100,95 100,155 50,180" fill="url(#blueFace)" stroke="#1e3a8a" stroke-width="1.5"/>
+                    
+                    <!-- Top face (darker) -->
+                    <polygon points="50,120 100,95 150,120 100,145" fill="#4285F4" stroke="#1e3a8a" stroke-width="1.5"/>
+                    
+                    <!-- Right face (orange) -->
+                    <polygon points="100,95 150,120 150,180 100,155" fill="url(#orangeFace)" stroke="#d97706" stroke-width="1.5"/>
+                    
+                    <!-- Screen/Document on laptop -->
+                    <polygon points="58,105 92,90 145,115 110,128" fill="#ffffff" stroke="#333" stroke-width="1" opacity="0.9"/>
+                    
+                    <!-- Document lines -->
+                    <line x1="65" y1="96" x2="85" y2="88" stroke="#999" stroke-width="1.5" opacity="0.5"/>
+                    <line x1="65" y1="104" x2="140" y2="110" stroke="#999" stroke-width="1" opacity="0.4"/>
+                    <line x1="65" y1="110" x2="135" y2="115" stroke="#999" stroke-width="1" opacity="0.4"/>
+                    
+                    <!-- Dollar Sign / Currency Symbol -->
+                    <circle cx="125" cy="75" r="15" fill="url(#greenFace)" stroke="#16a34a" stroke-width="1.5"/>
+                    <text x="125" y="82" text-anchor="middle" font-size="20" font-weight="bold" fill="white">$</text>
+                    
+                    <!-- Credit Card floating -->
+                    <rect x="130" y="140" width="35" height="22" rx="2" fill="url(#cardGold)" stroke="#d97706" stroke-width="1.5"/>
+                    <rect x="135" y="150" width="20" height="6" fill="#333" opacity="0.3"/>
+                    
+                    <!-- Small circles for decoration (data points) -->
+                    <circle cx="75" cy="135" r="4" fill="#5B9BFF" opacity="0.7"/>
+                    <circle cx="90" cy="148" r="3" fill="#52D87F" opacity="0.7"/>
+                    <circle cx="70" cy="165" r="3.5" fill="#FFB754" opacity="0.7"/>
+                    
+                    <!-- Subtle glow -->
+                    <ellipse cx="100" cy="150" rx="50" ry="30" fill="url(#shadow)" opacity="0.4"/>
                 </svg>
                 <h1>Smart Billing</h1>
             </div>
@@ -127,7 +171,7 @@
                 itemsBody.appendChild(tr);
             });
             
-            const tax = subtotal * 0.0; // Change tax rate if needed
+            const tax = subtotal * 0.0;
             const grandTotal = subtotal + tax;
             
             subtotalEl.textContent = subtotal.toFixed(2);

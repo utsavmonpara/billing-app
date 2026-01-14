@@ -66,7 +66,7 @@
             <div class="total-section" style="margin-top: 20px;">
                 <div class="total-row" style="border-top: 2px solid #ddd; padding-top: 10px;">
                     <strong>Grand Total:</strong>
-                    <span class="total-amount" style="font-size: 24px; color: #27ae60;">₹{{ "%.2f"|format(invoice[4]) }}</span>
+                    <span class="total-amount" style="font-size: 24px; color: #27ae60;">₹{{ "%.2f"|format(invoice[4]|float) }}</span>
                 </div>
             </div>
 

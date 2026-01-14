@@ -5,274 +5,290 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Billing App</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .autocomplete-container { position: relative; width: 100%; }
+        .autocomplete-suggestions { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 2px solid #e0e0e0; border-radius: 8px; max-height: 200px; overflow-y: auto; z-index: 1000; display: none; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .autocomplete-suggestions.active { display: block; }
+        .suggestion-item { padding: 12px 14px; cursor: pointer; border-bottom: 1px solid #f0f0f0; transition: background 0.2s; }
+        .suggestion-item:hover { background: #f0f0f0; }
+        .suggestion-item strong { color: #2c3e50; }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <header class="top-bar">
-            <div class="logo-section">
-                <!-- 3D Isometric Billing Logo -->
-                <svg class="logo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                        <linearGradient id="blueFace" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#5B9BFF;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#2E5AC2;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="greenFace" x1="0%" y1="100%" x2="100%" y2="0%">
-                            <stop offset="0%" style="stop-color:#52D87F;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#27B558;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="orangeFace" x1="100%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#FFB754;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#FF9500;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="cardGold" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#FFC700;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="shadow" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#00000015;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#00000030;stop-opacity:1" />
-                        </linearGradient>
-                    </defs>
-                    
-                    <!-- Base/Ground -->
-                    <polygon points="50,160 100,135 150,160 100,185" fill="#f0f0f0" opacity="0.6"/>
-                    
-                    <!-- Laptop Base - Isometric View -->
-                    <!-- Front face (blue) -->
-                    <polygon points="50,120 100,95 100,155 50,180" fill="url(#blueFace)" stroke="#1e3a8a" stroke-width="1.5"/>
-                    
-                    <!-- Top face (darker) -->
-                    <polygon points="50,120 100,95 150,120 100,145" fill="#4285F4" stroke="#1e3a8a" stroke-width="1.5"/>
-                    
-                    <!-- Right face (orange) -->
-                    <polygon points="100,95 150,120 150,180 100,155" fill="url(#orangeFace)" stroke="#d97706" stroke-width="1.5"/>
-                    
-                    <!-- Screen/Document on laptop -->
-                    <polygon points="58,105 92,90 145,115 110,128" fill="#ffffff" stroke="#333" stroke-width="1" opacity="0.9"/>
-                    
-                    <!-- Document lines -->
-                    <line x1="65" y1="96" x2="85" y2="88" stroke="#999" stroke-width="1.5" opacity="0.5"/>
-                    <line x1="65" y1="104" x2="140" y2="110" stroke="#999" stroke-width="1" opacity="0.4"/>
-                    <line x1="65" y1="110" x2="135" y2="115" stroke="#999" stroke-width="1" opacity="0.4"/>
-                    
-                    <!-- Dollar Sign / Currency Symbol -->
-                    <circle cx="125" cy="75" r="15" fill="url(#greenFace)" stroke="#16a34a" stroke-width="1.5"/>
-                    <text x="125" y="82" text-anchor="middle" font-size="20" font-weight="bold" fill="white">$</text>
-                    
-                    <!-- Credit Card floating -->
-                    <rect x="130" y="140" width="35" height="22" rx="2" fill="url(#cardGold)" stroke="#d97706" stroke-width="1.5"/>
-                    <rect x="135" y="150" width="20" height="6" fill="#333" opacity="0.3"/>
-                    
-                    <!-- Small circles for decoration (data points) -->
-                    <circle cx="75" cy="135" r="4" fill="#5B9BFF" opacity="0.7"/>
-                    <circle cx="90" cy="148" r="3" fill="#52D87F" opacity="0.7"/>
-                    <circle cx="70" cy="165" r="3.5" fill="#FFB754" opacity="0.7"/>
-                    
-                    <!-- Subtle glow -->
-                    <ellipse cx="100" cy="150" rx="50" ry="30" fill="url(#shadow)" opacity="0.4"/>
-                </svg>
-                <h1>Smart Billing</h1>
-            </div>
-            <a href="{{ url_for('history') }}" class="btn secondary">
-                        <a href="{{ url_for('products') }}" class="btn secondary" style="margin-left: 10px;">
-            <span class="icon">⚙️</span> Manage Catalog
-        </a>
-                <span class="icon">📋</span> Invoice History
-            </a>
-        </header>
+<div class="container">
+    <header class="top-bar">
+        <div class="logo-section">
+            <svg class="logo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="blueFace" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#5B9BFF;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#2E5AC2;stop-opacity:1" />
+                    </linearGradient>
+                    <linearGradient id="greenFace" x1="0%" y1="100%" x2="100%" y2="0%">
+                        <stop offset="0%" style="stop-color:#52D87F;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#27B558;stop-opacity:1" />
+                    </linearGradient>
+                    <linearGradient id="orangeFace" x1="100%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#FFB754;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#FF9500;stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+                <polygon points="50,160 100,135 150,160 100,185" fill="#f0f0f0" opacity="0.6"/>
+                <polygon points="50,120 100,95 100,155 50,180" fill="url(#blueFace)" stroke="#1e3a8a" stroke-width="1.5"/>
+                <polygon points="50,120 100,95 150,120 100,145" fill="#4285F4" stroke="#1e3a8a" stroke-width="1.5"/>
+                <polygon points="100,95 150,120 150,180 100,155" fill="url(#orangeFace)" stroke="#d97706" stroke-width="1.5"/>
+                <polygon points="58,105 92,90 145,115 110,128" fill="#ffffff" stroke="#333" stroke-width="1" opacity="0.9"/>
+                <circle cx="125" cy="75" r="15" fill="url(#greenFace)" stroke="#16a34a" stroke-width="1.5"/>
+                <text x="125" y="82" text-anchor="middle" font-size="20" font-weight="bold" fill="white">$</text>
+            </svg>
+            <h1>Smart Billing</h1>
+        </div>
+        <div class="header-buttons">
+            <a href="{{ url_for('products') }}" class="btn secondary">⚙️ Manage Catalog</a>
+            <a href="{{ url_for('history') }}" class="btn secondary">📋 Invoice History</a>
+        </div>
+    </header>
 
-        <section class="card">
-            <h2>✏️ Create New Invoice</h2>
-            
-            <!-- Customer Information Section -->
-            <div class="customer-section">
-                <h3>Customer Information</h3>
-                <div class="customer-row">
-                    <div class="form-group">
-                        <label for="customerName">Customer Name</label>
-                        <input id="customerName" type="text" placeholder="Enter customer name" class="customer-input">
-                    </div>
-                    <div class="form-group">
-                        <label for="customerEmail">Email (Optional)</label>
-                        <input id="customerEmail" type="email" placeholder="customer@email.com" class="customer-input">
-                    </div>
+    <section class="card">
+        <h2>✏️ Create New Invoice</h2>
+        
+        <div class="customer-section">
+            <h3>Customer Information</h3>
+            <div class="customer-row">
+                <div class="form-group">
+                    <label for="customerName">Customer Name</label>
+                    <input id="customerName" type="text" placeholder="Enter customer name" class="customer-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="customerEmail">Email (Optional)</label>
+                    <input id="customerEmail" type="email" placeholder="customer@email.com" class="customer-input">
                 </div>
             </div>
+        </div>
 
-            <!-- Invoice Items Section -->
-            <div class="items-section">
-                <h3>Invoice Items</h3>
-                <div class="inputs-row">
-                    <input id="productName" type="text" placeholder="Product name" class="form-input">
-                    <input id="quantity" type="number" min="1" placeholder="Qty" class="form-input qty-input">
-                    <input id="rate" type="number" min="0" step="0.01" placeholder="Rate (₹)" class="form-input rate-input">
-                    <button id="addItemBtn" class="btn primary btn-add">+ Add Item</button>
+        <div class="items-section">
+            <h3>Invoice Items</h3>
+            <div class="inputs-row">
+                <div class="autocomplete-container" style="flex: 2.5;">
+                    <input id="productName" type="text" placeholder="Search & select product" class="form-input" required>
+                    <div id="suggestions" class="autocomplete-suggestions"></div>
                 </div>
-
-                <table class="items-table">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Product</th>
-                            <th>Qty</th>
-                            <th>Rate (₹)</th>
-                            <th>Line Total (₹)</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="itemsBody">
-                    </tbody>
-                </table>
-
-                <!-- Totals Section -->
-                <div class="total-section">
-                    <div class="total-row">
-                        <span>Subtotal:</span>
-                        <span id="subtotal" class="total-amount">0.00</span>
-                    </div>
-                    <div class="total-row tax-row">
-                        <span>Tax (0%):</span>
-                        <span id="taxAmount" class="total-amount">0.00</span>
-                    </div>
-                    <div class="total-row grand-total-row">
-                        <span>Grand Total:</span>
-                        <span id="grandTotal" class="total-amount grand-total">0.00</span>
-                    </div>
-                </div>
+                <input id="quantity" type="number" min="1" placeholder="Qty" class="form-input qty-input" required>
+                <input id="rate" type="number" min="0" step="0.01" placeholder="Rate (₹)" class="form-input rate-input" readonly>
+                <button id="addItemBtn" class="btn primary btn-add">+ Add</button>
             </div>
 
-            <!-- Action Buttons -->
-            <div class="actions-row">
-                <button id="clearBtn" class="btn secondary btn-action">🗑️ Clear All</button>
-                <button id="saveInvoiceBtn" class="btn success btn-action">✓ Save Invoice</button>
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Product</th>
+                        <th>Qty</th>
+                        <th>Rate (₹)</th>
+                        <th>Line Total (₹)</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="itemsBody"></tbody>
+            </table>
+
+            <div class="total-section">
+                <div class="total-row">
+                    <span>Subtotal:</span>
+                    <span id="subtotal" class="total-amount">0.00</span>
+                </div>
+                <div class="total-row tax-row">
+                    <span>Tax (0%):</span>
+                    <span id="taxAmount" class="total-amount">0.00</span>
+                </div>
+                <div class="total-row grand-total-row">
+                    <span>Grand Total:</span>
+                    <span id="grandTotal" class="total-amount grand-total">0.00</span>
+                </div>
             </div>
-        </section>
-    </div>
+        </div>
 
-    <script>
-        const items = [];
-        const itemsBody = document.getElementById("itemsBody");
-        const grandTotalEl = document.getElementById("grandTotal");
-        const subtotalEl = document.getElementById("subtotal");
-        const taxEl = document.getElementById("taxAmount");
+        <div class="actions-row">
+            <button id="clearBtn" class="btn secondary btn-action">🗑️ Clear All</button>
+            <button id="saveInvoiceBtn" class="btn success btn-action">✓ Save Invoice</button>
+        </div>
+    </section>
+</div>
 
-        function renderTable() {
-            itemsBody.innerHTML = "";
-            let subtotal = 0;
-            items.forEach((item, index) => {
-                const tr = document.createElement("tr");
-                subtotal += item.line_total;
-                tr.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td class="product-col">${item.product_name}</td>
-                    <td>${item.quantity}</td>
-                    <td>₹${item.rate.toFixed(2)}</td>
-                    <td class="line-total">₹${item.line_total.toFixed(2)}</td>
-                    <td><button class="btn danger btn-sm" onclick="removeItem(${index})">Delete</button></td>
-                `;
-                itemsBody.appendChild(tr);
-            });
-            
-            const tax = subtotal * 0.0;
-            const grandTotal = subtotal + tax;
-            
-            subtotalEl.textContent = subtotal.toFixed(2);
-            taxEl.textContent = tax.toFixed(2);
-            grandTotalEl.textContent = grandTotal.toFixed(2);
-        }
+<script>
+const items = [];
+let allProducts = [];
+const itemsBody = document.getElementById("itemsBody");
+const grandTotalEl = document.getElementById("grandTotal");
+const subtotalEl = document.getElementById("subtotal");
+const taxEl = document.getElementById("taxAmount");
 
-        function addItem() {
-            const name = document.getElementById("productName").value.trim();
-            const qty = parseInt(document.getElementById("quantity").value);
-            const rate = parseFloat(document.getElementById("rate").value);
+// Fetch products on page load
+async function loadProducts() {
+    try {
+        const response = await fetch("/get_products");
+        allProducts = await response.json();
+    } catch (error) {
+        console.error("Error loading products:", error);
+    }
+}
 
-            if (!name || !qty || !rate || qty <= 0 || rate < 0) {
-                alert("❌ Please fill in all fields correctly.");
-                return;
-            }
+// Product autocomplete
+document.getElementById("productName").addEventListener("input", function(e) {
+    const query = e.target.value.trim().toLowerCase();
+    const suggestionsDiv = document.getElementById("suggestions");
+    
+    if (query.length === 0) {
+        suggestionsDiv.classList.remove("active");
+        return;
+    }
+    
+    const filtered = allProducts.filter(p => 
+        p.product_name.toLowerCase().includes(query)
+    );
+    
+    if (filtered.length === 0) {
+        suggestionsDiv.classList.remove("active");
+        return;
+    }
+    
+    suggestionsDiv.innerHTML = filtered.map(product => `
+        <div class="suggestion-item" onclick="selectProduct(${product.id}, '${product.product_name}', ${product.selling_price})">
+            <strong>${product.product_name}</strong>
+            <div style="font-size: 12px; color: #7f8c8d;">₹${product.selling_price.toFixed(2)}</div>
+        </div>
+    `).join("");
+    suggestionsDiv.classList.add("active");
+});
 
-            const lineTotal = qty * rate;
-            items.push({
-                product_name: name,
-                quantity: qty,
-                rate: rate,
-                line_total: lineTotal
-            });
+function selectProduct(id, name, price) {
+    document.getElementById("productName").value = name;
+    document.getElementById("rate").value = price.toFixed(2);
+    document.getElementById("suggestions").classList.remove("active");
+    document.getElementById("quantity").focus();
+}
 
-            document.getElementById("productName").value = "";
-            document.getElementById("quantity").value = "";
-            document.getElementById("rate").value = "";
-            document.getElementById("productName").focus();
+function renderTable() {
+    itemsBody.innerHTML = "";
+    let subtotal = 0;
+    items.forEach((item, index) => {
+        const tr = document.createElement("tr");
+        subtotal += item.line_total;
+        tr.innerHTML = `
+            <td>${index + 1}</td>
+            <td class="product-col">${item.product_name}</td>
+            <td>${item.quantity}</td>
+            <td>₹${item.rate.toFixed(2)}</td>
+            <td class="line-total">₹${item.line_total.toFixed(2)}</td>
+            <td><button class="btn danger btn-sm" onclick="removeItem(${index})">Delete</button></td>
+        `;
+        itemsBody.appendChild(tr);
+    });
+    
+    const tax = subtotal * 0.0;
+    const grandTotal = subtotal + tax;
+    
+    subtotalEl.textContent = subtotal.toFixed(2);
+    taxEl.textContent = tax.toFixed(2);
+    grandTotalEl.textContent = grandTotal.toFixed(2);
+}
+
+function addItem() {
+    const name = document.getElementById("productName").value.trim();
+    const qty = parseInt(document.getElementById("quantity").value);
+    const rate = parseFloat(document.getElementById("rate").value);
+    
+    if (!name || !qty || !rate || qty <= 0 || rate < 0) {
+        alert("❌ Please fill in all fields correctly.");
+        return;
+    }
+    
+    const lineTotal = qty * rate;
+    items.push({
+        product_name: name,
+        quantity: qty,
+        rate: rate,
+        line_total: lineTotal
+    });
+    
+    document.getElementById("productName").value = "";
+    document.getElementById("quantity").value = "";
+    document.getElementById("rate").value = "";
+    document.getElementById("productName").focus();
+    renderTable();
+}
+
+function removeItem(index) {
+    if (confirm("🗑️ Delete this item?")) {
+        items.splice(index, 1);
+        renderTable();
+    }
+}
+
+async function saveInvoice() {
+    const customerName = document.getElementById("customerName").value.trim();
+    if (!customerName) {
+        alert("❌ Please enter customer name.");
+        document.getElementById("customerName").focus();
+        return;
+    }
+    
+    if (items.length === 0) {
+        alert("❌ No items to save. Add items first.");
+        return;
+    }
+    
+    const total = parseFloat(grandTotalEl.textContent);
+    try {
+        const response = await fetch("/save_invoice", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                customer_name: customerName,
+                customer_email: document.getElementById("customerEmail").value.trim(),
+                items: items,
+                total: total
+            })
+        });
+        const data = await response.json();
+        if (data.success) {
+            alert("✓ Invoice #" + data.invoice_id + " saved successfully!");
+            items.length = 0;
+            document.getElementById("customerName").value = "";
+            document.getElementById("customerEmail").value = "";
             renderTable();
+        } else {
+            alert("❌ Error saving invoice.");
         }
+    } catch (error) {
+        alert("❌ Error: " + error.message);
+    }
+}
 
-        function removeItem(index) {
-            if (confirm("🗑️ Delete this item?")) {
-                items.splice(index, 1);
-                renderTable();
-            }
-        }
+function clearAll() {
+    if (confirm("⚠️ Clear all items?")) {
+        items.length = 0;
+        renderTable();
+    }
+}
 
-        async function saveInvoice() {
-            const customerName = document.getElementById("customerName").value.trim();
-            if (!customerName) {
-                alert("❌ Please enter customer name.");
-                document.getElementById("customerName").focus();
-                return;
-            }
-            
-            if (items.length === 0) {
-                alert("❌ No items to save. Add items first.");
-                return;
-            }
+document.getElementById("addItemBtn").addEventListener("click", addItem);
+document.getElementById("saveInvoiceBtn").addEventListener("click", saveInvoice);
+document.getElementById("clearBtn").addEventListener("click", clearAll);
+["productName", "quantity", "rate"].forEach(id => {
+    document.getElementById(id).addEventListener("keypress", (e) => {
+        if (e.key === "Enter") addItem();
+    });
+});
 
-            const total = parseFloat(grandTotalEl.textContent);
-            try {
-                const response = await fetch("/save_invoice", {
-                    method: "POST",
-                    headers: {"Content-Type": "application/json"},
-                    body: JSON.stringify({
-                        customer_name: customerName,
-                        customer_email: document.getElementById("customerEmail").value.trim(),
-                        items: items,
-                        total: total
-                    })
-                });
-                const data = await response.json();
-                if (data.success) {
-                    alert("✓ Invoice #" + data.invoice_id + " saved successfully!");
-                    items.length = 0;
-                    document.getElementById("customerName").value = "";
-                    document.getElementById("customerEmail").value = "";
-                    renderTable();
-                } else {
-                    alert("❌ Error saving invoice.");
-                }
-            } catch (error) {
-                alert("❌ Error: " + error.message);
-            }
-        }
+// Close suggestions when clicking outside
+document.addEventListener("click", (e) => {
+    if (e.target.id !== "productName") {
+        document.getElementById("suggestions").classList.remove("active");
+    }
+});
 
-        function clearAll() {
-            if (confirm("⚠️ Clear all items?")) {
-                items.length = 0;
-                renderTable();
-            }
-        }
-
-        document.getElementById("addItemBtn").addEventListener("click", addItem);
-        document.getElementById("saveInvoiceBtn").addEventListener("click", saveInvoice);
-        document.getElementById("clearBtn").addEventListener("click", clearAll);
-        document.getElementById("productName").addEventListener("keypress", (e) => {
-            if (e.key === "Enter") addItem();
-        });
-        document.getElementById("quantity").addEventListener("keypress", (e) => {
-            if (e.key === "Enter") addItem();
-        });
-        document.getElementById("rate").addEventListener("keypress", (e) => {
-            if (e.key === "Enter") addItem();
-        });
-    </script>
+loadProducts();
+</script>
 </body>
 </html>

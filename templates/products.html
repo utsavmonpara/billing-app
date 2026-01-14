@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manage Product Catalog</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .header { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .header h1 { margin: 0; color: #333; }
+        .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: bold; }
+        .btn-primary { background-color: #667eea; color: white; }
+        .btn-primary:hover { background-color: #764ba2; }
+        .btn-danger { background-color: #f5576c; color: white; }
+        .btn-danger:hover { background-color: #d63447; }
+        .btn-secondary { background-color: #6c757d; color: white; }
+        .section { background: white; padding: 25px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; color: #333; font-weight: bold; }
+        input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
+        .form-row input { width: 100%; }
+        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        table th { background-color: #f8f9fa; padding: 12px; text-align: left; font-weight: bold; border-bottom: 2px solid #ddd; }
+        table td { padding: 12px; border-bottom: 1px solid #ddd; }
+        table tr:hover { background-color: #f9f9f9; }
+        .margin-percent { color: #28a745; font-weight: bold; }
+        .actions { display: flex; gap: 8px; }
+        .message { padding: 15px; border-radius: 5px; margin-bottom: 20px; display: none; }
+        .message.success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; display: block; }
+        .message.error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; display: block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💶 Manage Product Catalog</h1>
+            <a href="/" class="btn btn-secondary">← Back to Home</a>
+        </div>
+        
+        <div id="message" class="message"></div>
+        
+        <div class="section">
+            <h2>➕ Add New Product</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Product Name</label>
+                    <input type="text" id="productName" placeholder="e.g., Laptop, Mouse, Keyboard">
+                </div>
+                <div class="form-group">
+                    <label>Cost Price (₹)</label>
+                    <input type="number" id="costPrice" placeholder="Cost price" step="0.01" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Selling Price (₹)</label>
+                    <input type="number" id="sellingPrice" placeholder="Selling price" step="0.01" min="0">
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="addProduct()">✅ Add Product</button>
+        </div>
+        
+        <div class="section">
+            <h2>📖 Product Catalog</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Product Name</th>
+                        <th>Cost Price (₹)</th>
+                        <th>Selling Price (₹)</th>
+                        <th>Profit Margin</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="productsList">
+                    {% if products %}
+                        {% for product in products %}
+                            <tr>
+                                <td><strong>{{ product.product_name }}</strong></td>
+                                <td>₹{{ product.cost_price }}</td>
+                                <td>₹{{ product.selling_price }}</td>
+                                <td class="margin-percent">{{ "%.1f" | format(product.margin_percentage) }}%</td>
+                                <td class="actions">
+                                    <button class="btn btn-danger" onclick="deleteProduct({{ product.id }})">Delete</button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: #999;">No products added yet. Add one above!</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <script>
+        function addProduct() {
+            const name = document.getElementById('productName').value;
+            const cost = parseFloat(document.getElementById('costPrice').value);
+            const selling = parseFloat(document.getElementById('sellingPrice').value);
+            
+            if (!name || !cost || !selling) {
+                showMessage('Please fill all fields', 'error');
+                return;
+            }
+            
+            fetch('/add_product', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    product_name: name,
+                    cost_price: cost,
+                    selling_price: selling
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage('Product added successfully!', 'success');
+                    document.getElementById('productName').value = '';
+                    document.getElementById('costPrice').value = '';
+                    document.getElementById('sellingPrice').value = '';
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showMessage(data.message || 'Error adding product', 'error');
+                }
+            })
+            .catch(err => showMessage('Error: ' + err.message, 'error'));
+        }
+        
+        function deleteProduct(id) {
+            if (confirm('Are you sure you want to delete this product?')) {
+                fetch(`/delete_product/${id}`, { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    showMessage('Product deleted successfully!', 'success');
+                    setTimeout(() => location.reload(), 1500);
+                })
+                .catch(err => showMessage('Error: ' + err.message, 'error'));
+            }
+        }
+        
+        function showMessage(msg, type) {
+            const msgDiv = document.getElementById('message');
+            msgDiv.textContent = msg;
+            msgDiv.className = 'message ' + type;
+            setTimeout(() => msgDiv.className = 'message', 5000);
+        }
+    </script>
+</body>
+</html>

@@ -7,44 +7,46 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-<div class="container">
-    <header class="top-bar">
-        <h1>📋 Invoice History</h1>
-        <a href="{{ url_for('index') }}" class="btn danger">➕ New Invoice</a>
-    </header>
+    <div class="container">
+        <header class="top-bar">
+            <h1>📋 Invoice History</h1>
+            <a href="{{ url_for('index') }}" class="btn danger">➕ New Invoice</a>
+        </header>
 
-    <section class="card">
-        <table class="items-table">
-            <thead>
-            <tr>
-                <th>Invoice ID</th>
-                <th>Date & Time</th>
-                <th>Total Amount</th>
-                <th>Action</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for inv in invoices %}
-                <tr>
-                    <td>#{{ inv[0] }}</td>
-                    <td>{{ inv[1] }}</td>
-                    <td>₹{{ "%.2f"|format(inv[2]) }}</td>
-                    <td>
-                        <a href="{{ url_for('invoice_detail', invoice_id=inv[0]) }}" class="btn btn-sm primary">
-                            View Details
-                        </a>
-                    </td>
-                </tr>
-            {% else %}
-                <tr>
-                    <td colspan="4" style="text-align: center; padding: 20px;">
-                        <p style="color: #999; font-size: 16px;">No invoices yet. <a href="{{ url_for('index') }}">Create one now!</a></p>
-                    </td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    </section>
-</div>
+        <section class="card">
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th>Invoice ID</th>
+                        <th>Customer Name</th>
+                        <th>Date & Time</th>
+                        <th>Total Amount</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for inv in invoices %}
+                    <tr>
+                        <td>#{{ inv[0] }}</td>
+                        <td class="customer-col"><strong>{{ inv[1] }}</strong></td>
+                        <td>{{ inv[2] }}</td>
+                        <td>₹{{ "%.2f"|format(inv[3]) }}</td>
+                        <td>
+                            <a href="{{ url_for('invoice_detail', invoice_id=inv[0]) }}" class="btn btn-sm primary">
+                                View Details
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 20px;">
+                            <p style="color: #999; font-size: 16px;">No invoices yet. <a href="{{ url_for('index') }}">Create one now!</a></p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+    </div>
 </body>
 </html>

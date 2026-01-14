@@ -18,26 +18,28 @@ def ensure_tables_exist():
         conn = get_db_connection()
         cur = conn.cursor()
         
-        # Create invoices table
+        # Create invoices table with customer_name and customer_email
         cur.execute("""
-            CREATE TABLE IF NOT EXISTS invoices (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                created_at TEXT NOT NULL,
-                total REAL NOT NULL
-            )
+        CREATE TABLE IF NOT EXISTS invoices (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        customer_name TEXT,
+        customer_email TEXT,
+        created_at TEXT NOT NULL,
+        total REAL NOT NULL
+        )
         """)
         
         # Create invoice_items table
         cur.execute("""
-            CREATE TABLE IF NOT EXISTS invoice_items (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                invoice_id INTEGER NOT NULL,
-                product_name TEXT NOT NULL,
-                quantity INTEGER NOT NULL,
-                rate REAL NOT NULL,
-                line_total REAL NOT NULL,
-                FOREIGN KEY(invoice_id) REFERENCES invoices(id)
-            )
+        CREATE TABLE IF NOT EXISTS invoice_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        invoice_id INTEGER NOT NULL,
+        product_name TEXT NOT NULL,
+        quantity INTEGER NOT NULL,
+        rate REAL NOT NULL,
+        line_total REAL NOT NULL,
+        FOREIGN KEY(invoice_id) REFERENCES invoices(id)
+        )
         """)
         
         conn.commit()
@@ -59,21 +61,29 @@ def save_invoice():
         data = request.get_json()
         items = data.get("items", [])
         total = data.get("total", 0)
-
+        customer_name = data.get("customer_name", "Unknown Customer")
+        customer_email = data.get("customer_email", "")
+        
         if not items:
             return jsonify({"success": False, "message": "No items to save"}), 400
-
+        
         conn = get_db_connection()
         cur = conn.cursor()
-
+        
         created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        cur.execute("INSERT INTO invoices (created_at, total) VALUES (?, ?)", (created_at, total))
+        
+        # Insert invoice with customer information
+        cur.execute(
+            "INSERT INTO invoices (customer_name, customer_email, created_at, total) VALUES (?, ?, ?, ?)",
+            (customer_name, customer_email, created_at, total)
+        )
         invoice_id = cur.lastrowid
-
+        
+        # Insert invoice items
         for item in items:
             cur.execute("""
-                INSERT INTO invoice_items (invoice_id, product_name, quantity, rate, line_total)
-                VALUES (?, ?, ?, ?, ?)
+            INSERT INTO invoice_items (invoice_id, product_name, quantity, rate, line_total)
+            VALUES (?, ?, ?, ?, ?)
             """, (
                 invoice_id,
                 item.get("product_name"),
@@ -81,10 +91,10 @@ def save_invoice():
                 float(item.get("rate", 0)),
                 float(item.get("line_total", 0)),
             ))
-
+        
         conn.commit()
         conn.close()
-
+        
         return jsonify({"success": True, "invoice_id": invoice_id})
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
@@ -95,9 +105,12 @@ def history():
         ensure_tables_exist()  # Ensure tables exist before querying
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute("SELECT id, created_at, total FROM invoices ORDER BY id DESC")
+        
+        # Select invoices with customer_name
+        cur.execute("SELECT id, customer_name, created_at, total FROM invoices ORDER BY id DESC")
         invoices = cur.fetchall()
         conn.close()
+        
         return render_template("history.html", invoices=invoices)
     except Exception as e:
         print(f"Error in history: {str(e)}")
@@ -109,21 +122,21 @@ def invoice_detail(invoice_id):
         ensure_tables_exist()  # Ensure tables exist before querying
         conn = get_db_connection()
         cur = conn.cursor()
-
-        cur.execute("SELECT id, created_at, total FROM invoices WHERE id = ?", (invoice_id,))
+        
+        cur.execute("SELECT id, customer_name, customer_email, created_at, total FROM invoices WHERE id = ?", (invoice_id,))
         invoice = cur.fetchone()
-
+        
         cur.execute("""
-            SELECT product_name, quantity, rate, line_total
-            FROM invoice_items
-            WHERE invoice_id = ?
+        SELECT product_name, quantity, rate, line_total
+        FROM invoice_items
+        WHERE invoice_id = ?
         """, (invoice_id,))
         items = cur.fetchall()
-
         conn.close()
+        
         if not invoice:
             return "Invoice not found", 404
-
+        
         return render_template("invoice_detail.html", invoice=invoice, items=items)
     except Exception as e:
         print(f"Error in invoice_detail: {str(e)}")

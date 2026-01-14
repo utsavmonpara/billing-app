@@ -184,7 +184,8 @@ def history():
         return f"Error: {str(e)}", 500
 
 @app.route("/invoice/<int:invoice_id>")
-def invoice_detail(invoice_id):
+def 187
+(invoice_id):
     try:
         conn = get_db_connection()
         cur = conn.cursor()
@@ -195,7 +196,7 @@ def invoice_detail(invoice_id):
         cur.execute("SELECT total_profit, profit_percentage FROM profit_summary WHERE invoice_id = ?", (invoice_id,))
         profit_data = cur.fetchone()
         conn.close()
-        return render_template("invoice_detail.html", invoice=invoice, items=items, profit_data=profit_data)
+        return render_template("invoice_detail.html", invoice=tuple(invoice) if invoice else None, items=items, profit_data=profit_data)
     except Exception as e:
         return f"Error: {str(e)}", 500
 

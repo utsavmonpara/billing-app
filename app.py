@@ -184,8 +184,7 @@ def history():
         return f"Error: {str(e)}", 500
 
 @app.route("/invoice/<int:invoice_id>")
-def 187
-(invoice_id):
+def invoice_detail(invoice_id):
     try:
         conn = get_db_connection()
         cur = conn.cursor()
